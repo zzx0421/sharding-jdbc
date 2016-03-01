@@ -17,20 +17,21 @@
 
 package com.dangdang.ddframe.rdb.transaction.soft.api;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-
 import com.dangdang.ddframe.rdb.sharding.executor.event.DMLExecutionEventBus;
 import com.dangdang.ddframe.rdb.transaction.soft.api.config.SoftTransactionConfiguration;
+import com.dangdang.ddframe.rdb.transaction.soft.bed.BEDSoftTransactionManager;
 import com.dangdang.ddframe.rdb.transaction.soft.bed.async.NestedBestEffortsDeliveryJobFactory;
 import com.dangdang.ddframe.rdb.transaction.soft.bed.sync.BestEffortsDeliveryListener;
 import com.dangdang.ddframe.rdb.transaction.soft.storage.TransactionLogStroageType;
+import com.dangdang.ddframe.rdb.transaction.soft.tcc.TCCSoftTransactionManager;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 /**
  * 柔性事务管理器工厂.
@@ -40,7 +41,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public final class SoftTransactionManagerFactory {
     
-    private static ThreadLocal<SoftTransactionManager> currentTransactionManager = new ThreadLocal<>();
+    private static ThreadLocal<AbstractSoftTransactionManager> currentTransactionManager = new ThreadLocal<>();
     
     private static ThreadLocal<SoftTransactionConfiguration> currentTransactionConfig = new ThreadLocal<>();
     
@@ -80,10 +81,21 @@ public final class SoftTransactionManagerFactory {
     /**
      * 获取柔性事务管理器.
      * 
+     * @param type 柔性事务类型
      * @return 柔性事务管理器
      */
-    public SoftTransactionManager getTransactionManager() {
-        SoftTransactionManager result = new SoftTransactionManager();
+    public AbstractSoftTransactionManager getTransactionManager(final SoftTransactionType type) {
+        AbstractSoftTransactionManager result;
+        switch (type) {
+            case BestEffortsDelivery: 
+                result = new BEDSoftTransactionManager();
+                break;
+            case TryConfirmCancel:
+                result = new TCCSoftTransactionManager();
+                break;
+            default: 
+                throw new UnsupportedOperationException(type.toString());
+        }
         // TODO 目前使用不支持嵌套事务，以后这里需要可配置
         if (getCurrentTransactionManager().isPresent()) {
             throw new UnsupportedOperationException("Cannot support nested transaction.");
@@ -107,7 +119,7 @@ public final class SoftTransactionManagerFactory {
      * 
      * @return 当前的柔性事务管理器
      */
-    public static Optional<SoftTransactionManager> getCurrentTransactionManager() {
+    public static Optional<AbstractSoftTransactionManager> getCurrentTransactionManager() {
         return Optional.fromNullable(currentTransactionManager.get());
     }
     

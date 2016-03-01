@@ -24,7 +24,7 @@ import java.sql.SQLException;
 
 import com.dangdang.ddframe.rdb.sharding.executor.event.DMLExecutionEvent;
 import com.dangdang.ddframe.rdb.sharding.executor.event.DMLExecutionEventListener;
-import com.dangdang.ddframe.rdb.transaction.soft.api.SoftTransactionManager;
+import com.dangdang.ddframe.rdb.transaction.soft.bed.BEDSoftTransactionManager;
 import com.dangdang.ddframe.rdb.transaction.soft.api.SoftTransactionManagerFactory;
 import com.dangdang.ddframe.rdb.transaction.soft.api.SoftTransactionType;
 import com.dangdang.ddframe.rdb.transaction.soft.api.config.SoftTransactionConfiguration;
@@ -52,7 +52,7 @@ public final class BestEffortsDeliveryListener implements DMLExecutionEventListe
         }
         SoftTransactionConfiguration transactionConfig = SoftTransactionManagerFactory.getCurrentTransactionConfiguration().get();
         TransacationLogStorage transacationLogStorage = TransacationLogStorageFactory.createTransacationLogStorageFactory(transactionConfig);
-        SoftTransactionManager transactionManager = SoftTransactionManagerFactory.getCurrentTransactionManager().get();
+        BEDSoftTransactionManager transactionManager = (BEDSoftTransactionManager) SoftTransactionManagerFactory.getCurrentTransactionManager().get();
         switch (event.getEventExecutionType()) {
             case BEFORE_EXECUTE: 
                 transacationLogStorage.add(new TransactionLog(

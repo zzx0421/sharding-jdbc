@@ -37,7 +37,7 @@ import com.dangdang.ddframe.rdb.sharding.api.strategy.database.DatabaseShardingS
 import com.dangdang.ddframe.rdb.sharding.api.strategy.table.TableShardingStrategy;
 import com.dangdang.ddframe.rdb.sharding.example.transaction.algorithm.ModuloDatabaseShardingAlgorithm;
 import com.dangdang.ddframe.rdb.sharding.example.transaction.algorithm.ModuloTableShardingAlgorithm;
-import com.dangdang.ddframe.rdb.transaction.soft.api.SoftTransactionManager;
+import com.dangdang.ddframe.rdb.transaction.soft.bed.BEDSoftTransactionManager;
 import com.dangdang.ddframe.rdb.transaction.soft.api.SoftTransactionManagerFactory;
 import com.dangdang.ddframe.rdb.transaction.soft.api.SoftTransactionType;
 import com.dangdang.ddframe.rdb.transaction.soft.api.config.NestedBestEffortsDeliveryJobConfiguration;
@@ -59,11 +59,11 @@ public final class Main {
         String sql3 = "UPDATE t_order SET status='UPDATE_2' WHERE user_id=10 AND order_id=1000";
         SoftTransactionManagerFactory transactionManagerFactory = new SoftTransactionManagerFactory(getSoftTransactionConfiguration(dataSource));
         transactionManagerFactory.init();
-        SoftTransactionManager transactionManager = transactionManagerFactory.getTransactionManager();
+        BEDSoftTransactionManager transactionManager = (BEDSoftTransactionManager) transactionManagerFactory.getTransactionManager(SoftTransactionType.BestEffortsDelivery);
         Connection conn = null;
         try {
             conn = dataSource.getConnection();
-            transactionManager.begin(conn, SoftTransactionType.BestEffortsDelivery);
+            transactionManager.begin(conn);
             PreparedStatement pstmt1 = conn.prepareStatement(sql1);
             PreparedStatement pstmt2 = conn.prepareStatement(sql2);
             pstmt2.setObject(1, 1000);

@@ -77,7 +77,7 @@ public final class AsyncJobMain {
     
     private static DataSource createDataSource(final String dataSourceName) {
         BasicDataSource result = new BasicDataSource();
-        result.setDriverClassName(com.mysql.jdbc.Driver.class.getName());
+        result.setDriverClassName("com.mysql.jdbc.Driver");
         result.setUrl(String.format("jdbc:mysql://localhost:3306/%s", dataSourceName));
         result.setUsername("root");
         result.setPassword("");
