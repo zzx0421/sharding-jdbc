@@ -52,6 +52,13 @@ public final class SoftTransactionConfiguration {
     private int asyncMaxDeliveryTryTimes = 3;
     
     /**
+     * 执行异步送达事务的延迟毫秒数.
+     * 
+     * <p>早于此间隔时间的入库事务才会被异步作业执行.</p>
+     */
+    private long asyncMaxDeliveryTryDelayMillis = 1 * 60  * 1000L;
+    
+    /**
      * 事务日志存储类型.
      */
     private TransactionLogStroageType stroageType = TransactionLogStroageType.DATABASE;

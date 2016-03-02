@@ -69,6 +69,7 @@ public final class SoftTransactionManagerFactory {
                 + "`data_source` VARCHAR(255) NOT NULL, "
                 + "`sql` TEXT NOT NULL, "
                 + "`parameters` TEXT NOT NULL, "
+                + "`creation_time` LONG NOT NULL, "
                 + "`async_delivery_try_times` INT NOT NULL DEFAULT 0, "
                 + "PRIMARY KEY (`id`));";
         try (

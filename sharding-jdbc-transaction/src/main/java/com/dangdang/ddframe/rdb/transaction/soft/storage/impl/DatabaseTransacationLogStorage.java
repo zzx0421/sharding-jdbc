@@ -17,22 +17,21 @@
 
 package com.dangdang.ddframe.rdb.transaction.soft.storage.impl;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.dangdang.ddframe.rdb.transaction.soft.api.SoftTransactionType;
 import com.dangdang.ddframe.rdb.transaction.soft.api.config.SoftTransactionConfiguration;
 import com.dangdang.ddframe.rdb.transaction.soft.storage.TransacationLogStorage;
 import com.dangdang.ddframe.rdb.transaction.soft.storage.TransactionLog;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 基于数据库的事务日志存储器接口.
@@ -49,7 +48,7 @@ public final class DatabaseTransacationLogStorage implements TransacationLogStor
     
     @Override
     public void add(final TransactionLog transactionLog) {
-        String sql = "INSERT INTO `transaction_log` (`id`, `transaction_type`,`data_source`,`sql`,`parameters`) VALUES (?, ?, ?, ?, ?);";
+        String sql = "INSERT INTO `transaction_log` (`id`, `transaction_type`, `data_source`, `sql`, `parameters`, `creation_time`) VALUES (?, ?, ?, ?, ?, ?);";
         try (
                 Connection conn = transactionConfiguration.getTransactionLogDataSource().getConnection();
                 PreparedStatement psmt = conn.prepareStatement(sql)) {
@@ -58,6 +57,7 @@ public final class DatabaseTransacationLogStorage implements TransacationLogStor
             psmt.setString(3, transactionLog.getDataSource());
             psmt.setString(4, transactionLog.getSql());
             psmt.setString(5, new Gson().toJson(transactionLog.getParameters()));
+            psmt.setLong(6, transactionLog.getCreationTime());
             psmt.executeUpdate();
         } catch (final SQLException ex) {
             log.error("Save transaction log error:", ex);
@@ -78,21 +78,22 @@ public final class DatabaseTransacationLogStorage implements TransacationLogStor
     }
     
     @Override
-    public List<TransactionLog> findAllForLessThanMaxAsyncProcessTimes(final int size, final SoftTransactionType type) {
+    public List<TransactionLog> findEligibledTransactionLogs(final int size, final SoftTransactionType type) {
         List<TransactionLog> result = new ArrayList<>(size);
-        String sql = "SELECT `id`, `transaction_type`, `data_source`, `sql`, `parameters`, `async_delivery_try_times` "
-                + "FROM `transaction_log` WHERE `async_delivery_try_times`<? AND `transaction_type`=? LIMIT ?;";
+        String sql = "SELECT `id`, `transaction_type`, `data_source`, `sql`, `parameters`, `creation_time`, `async_delivery_try_times` "
+                + "FROM `transaction_log` WHERE `async_delivery_try_times`<? AND `transaction_type`=? AND `creation_time`<? LIMIT ?;";
         try (
                 Connection conn = transactionConfiguration.getTransactionLogDataSource().getConnection();
                 PreparedStatement psmt = conn.prepareStatement(sql)) {
             psmt.setInt(1, transactionConfig.getAsyncMaxDeliveryTryTimes());
             psmt.setString(2, type.toString());
-            psmt.setInt(3, size);
+            psmt.setLong(3, System.currentTimeMillis() - transactionConfiguration.getAsyncMaxDeliveryTryDelayMillis());
+            psmt.setInt(4, size);
             try (ResultSet rs = psmt.executeQuery()) {
                 while (rs.next()) {
                     Gson gson = new Gson();
                     List<Object> parameters = gson.fromJson(rs.getString(5), new TypeToken<List<Object>>() { }.getType());
-                    result.add(new TransactionLog(rs.getString(1), "", SoftTransactionType.valueOf(rs.getString(2)), rs.getString(3), rs.getString(4), parameters, rs.getInt(6)));
+                    result.add(new TransactionLog(rs.getString(1), "", SoftTransactionType.valueOf(rs.getString(2)), rs.getString(3), rs.getString(4), parameters, rs.getLong(6), rs.getInt(7)));
                 }
             }
         } catch (final SQLException ex) {

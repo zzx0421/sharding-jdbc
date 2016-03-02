@@ -45,7 +45,7 @@ import com.dangdang.ddframe.rdb.transaction.soft.api.config.SoftTransactionConfi
 // CHECKSTYLE:OFF
 public final class Main {
     
-    private static boolean useNestedJob = false;
+    private static boolean useNestedJob = true;
     
     public static void main(final String[] args) throws SQLException {
         // CHECKSTYLE:ON

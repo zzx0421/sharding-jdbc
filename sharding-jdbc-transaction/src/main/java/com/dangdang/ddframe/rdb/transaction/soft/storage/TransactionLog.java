@@ -17,6 +17,7 @@
 
 package com.dangdang.ddframe.rdb.transaction.soft.storage;
 
+import java.util.Date;
 import java.util.List;
 
 import com.dangdang.ddframe.rdb.transaction.soft.api.SoftTransactionType;
@@ -45,6 +46,8 @@ public final class TransactionLog {
     private final String sql;
     
     private final List<Object> parameters;
+
+    private final long creationTime;
     
     @Setter
     private int asyncDeliveryTryTimes;

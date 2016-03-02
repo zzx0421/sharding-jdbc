@@ -48,7 +48,7 @@ public class BestEffortsDeliveryJob extends AbstractIndividualThroughputDataFlow
     
     @Override
     public List<TransactionLog> fetchData(final JobExecutionMultipleShardingContext context) {
-        return transacationLogStorage.findAllForLessThanMaxAsyncProcessTimes(context.getFetchDataCount(), SoftTransactionType.BestEffortsDelivery);
+        return transacationLogStorage.findEligibledTransactionLogs(context.getFetchDataCount(), SoftTransactionType.BestEffortsDelivery);
     }
     
     @Override

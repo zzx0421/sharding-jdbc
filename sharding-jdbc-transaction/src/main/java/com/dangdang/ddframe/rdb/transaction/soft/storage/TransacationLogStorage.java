@@ -43,12 +43,16 @@ public interface TransacationLogStorage {
     void remove(String id);
     
     /**
-     * 读取异步处理次数小于最大处理次数的事务日志.
+     * 读取需要处理的事务日志.
+     * 
+     * <p>需要处理的事务日志为: </p>
+     * <p>1. 异步处理次数小于最大处理次数.</p>
+     * <p>2. 异步处理的事务日志早于异步处理的间隔时间.</p>
      * 
      * @param size 获取日志的数量
      * @param type 柔性事务类型
      */
-    List<TransactionLog> findAllForLessThanMaxAsyncProcessTimes(int size, SoftTransactionType type);
+    List<TransactionLog> findEligibledTransactionLogs(int size, SoftTransactionType type);
     
     /**
      * 增加事务日志异步重试次数.

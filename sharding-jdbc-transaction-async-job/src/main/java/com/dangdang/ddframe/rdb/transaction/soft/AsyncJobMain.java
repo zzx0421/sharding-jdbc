@@ -86,7 +86,7 @@ public final class AsyncJobMain {
     
     private static DataSource createTransactionLogDataSource() {
         BasicDataSource result = new BasicDataSource();
-        result.setDriverClassName(com.mysql.jdbc.Driver.class.getName());
+        result.setDriverClassName("com.mysql.jdbc.Driver");
         result.setUrl("jdbc:mysql://localhost:3306/trans_log");
         result.setUsername("root");
         result.setPassword("");

@@ -21,6 +21,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Date;
 
 import com.dangdang.ddframe.rdb.sharding.executor.event.DMLExecutionEvent;
 import com.dangdang.ddframe.rdb.sharding.executor.event.DMLExecutionEventListener;
@@ -56,7 +57,7 @@ public final class BestEffortsDeliveryListener implements DMLExecutionEventListe
         switch (event.getEventExecutionType()) {
             case BEFORE_EXECUTE: 
                 transacationLogStorage.add(new TransactionLog(
-                        event.getId(), transactionManager.getTransactionId(), transactionManager.getTransactionType(), event.getDataSource(), event.getSql(), event.getParameters(), 0));
+                        event.getId(), transactionManager.getTransactionId(), transactionManager.getTransactionType(), event.getDataSource(), event.getSql(), event.getParameters(), System.currentTimeMillis(), 0));
                 return;
             case EXECUTE_SUCCESS: 
                 transacationLogStorage.remove(event.getId());

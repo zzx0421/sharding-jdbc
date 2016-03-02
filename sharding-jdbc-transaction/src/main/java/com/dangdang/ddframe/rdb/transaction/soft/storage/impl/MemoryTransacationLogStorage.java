@@ -51,14 +51,15 @@ public final class MemoryTransacationLogStorage implements TransacationLogStorag
     }
     
     @Override
-    public List<TransactionLog> findAllForLessThanMaxAsyncProcessTimes(final int size, final SoftTransactionType type) {
+    public List<TransactionLog> findEligibledTransactionLogs(final int size, final SoftTransactionType type) {
         List<TransactionLog> result = new ArrayList<TransactionLog>();
         int count = 0;
         for (TransactionLog each : DATA.values()) {
             if (count >= size) {
                 break;
             }
-            if (each.getAsyncDeliveryTryTimes() < transactionConfig.getAsyncMaxDeliveryTryTimes() && type == each.getTransactionType()) {
+            if (each.getAsyncDeliveryTryTimes() < transactionConfig.getAsyncMaxDeliveryTryTimes() 
+                    && type == each.getTransactionType() && each.getCreationTime() < System.currentTimeMillis() - transactionConfig.getAsyncMaxDeliveryTryDelayMillis()) {
                 result.add(each);
             }
             count++;
